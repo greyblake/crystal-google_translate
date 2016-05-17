@@ -1,3 +1,5 @@
+require "http"
+
 require "./google_translate/*"
 
 module GoogleTranslate

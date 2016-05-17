@@ -1,85 +1,73 @@
-module GoogleTranslator
+module GoogleTranslate
   # Adapted ruby code, taken from here: https://github.com/Stichoza/google-translate-php/issues/32#issuecomment-174027042
   # Thanks @galeto!
   class TokenBuilder
     def build(text)
-      tl(text)
-    end
-
-    def shr32(x, bits)
-      return x if bits.to_i <= 0
-      return 0 if bits.to_i >= 32
-
-      bin = x.to_u32.to_s(2) # to binary
-      l = bin.size
-      if l > 32
-        bin = bin[(l - 32), 32]
-      elsif l < 32
-        bin = bin.rjust(32, '0')
-      end
-
-      bin = bin[0, (32 - bits)]
-      (bin.rjust(32, '0')).to_i(2)
+      tk(text)
     end
 
     def char_code_at(str, index)
       str[index].ord
     end
 
-    def rl(a, b)
-      c = 0
-      while c < (b.size - 2)
-        d = b[c+2]
-        d = (d >= 'a') ? d.ord - 87 : d.to_i
-        d = (b[c+1] ==  '+') ? shr32(a.to_u32, d.to_u32) : a << d
-        a = (b[c] == '+') ? (a + d & 4294967295) : a ^ d
-        c += 3
-      end
-      a
-    end
-
-    def tl(a)
-      b = 402890
-      d = [] of Int32
-      e = 0
+    def tk(a)
+      e = tkk.split(".")
+      h = e[0].to_i64
+      g = [] of Int32
       f = 0
 
-      while f < a.size
-        g = char_code_at(a, f)
-        if 128 > g
-          d << g
+      a.size.times do |f|
+        c = char_code_at(a, f)
+        if 128 > c
+          g << c
         else
-          if 1048 > g
-            d[e] = g >> 6 | 192
+          if 2048 > c
+            g << (c >> 6 | 192)
           else
-            if (55296 == (g & 64512) && f + 1 < a.size && 56320 == (char_code_at(a, (f+1)) & 64512))
-              g = 65536 + ((g & 1023) << 10) + (char_code_at(a, f += 1) & 1023)
-              d[e] = g >> 18 | 240
-              d[e] = g >> 12 & 63 | 128
+            if 55296 == (c & 64512) && f + 1 < a.size && 56320 == (char_code_at(a, f+1) & 64512)
+                c = 65536 + ((c & 1023) << 10) + (char_code_at(a,f+=1) & 1023)
+                g << (c >> 18 | 240)
+                g << (c >> 12 & 63 | 128)
             else
-              d[e] = g >> 12 | 224
-              d[e] = g >> 6 & 63 | 128
+              g << (c >> 12 | 224)
+              g << (c >> 6 & 63 | 128)
             end
           end
-          d[e] = g & 63 | 128
+          g << (c & 63 | 128)
         end
-        e +=1
-        f += 1
       end
 
-      a = b
-      e = 0
-
-      while e < d.size
-        a += d[e]
-        a = rl(a.to_u32, "+-a^+6")
-        e += 1
+      a = h
+      d = 0
+      while d < g.size
+        a+= g[d]
+        a = b(a, "+-a^+6")
+        d+=1
       end
 
-      a = rl(a, "+-3^+b+-f")
-      a = (a & 2147483647) + 2147483648 if 0 > a
-      a %= (10 ** 6).to_i
-      return ("#{ a }.#{ a ^ b }")
+      a = b(a, "+-3^+b+-f")
+      a ^= (e[1]).to_i
+      0 > a && (a = (a & 2147483647) + 2147483648);
+      a %= 1E6.to_i
+      return a.to_i.to_s + "." + (a.to_i ^ h).to_s;
+    end
+
+    def tkk : String
+      a = 561666268;
+      b = 1526272306;
+      return 406398.to_s + '.' + (a + b).to_s;
+    end
+
+    def b(a, b)
+      d = 0
+      while d < (b.size - 2)
+        c = b[d+2]
+        c = 'a' <= c ? c.ord - 87 : c.to_i
+        c = '+' == b[d+1] ? a >> c : a << c
+        a = '+' == b[d] ? a + c & 4294967295 : a ^ c
+        d += 3
+      end
+      a
     end
   end
 end
