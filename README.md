@@ -1,9 +1,8 @@
-# google_translate
+# Crystal GoogleTranslate [![Build Status](https://travis-ci.org/greyblake/crystal-google_translate.svg?branch=master)](https://travis-ci.org/greyblake/crystal-google_translate)
 
-TODO: Write a description here
+Crystal client for GoogleTranslate
 
 ## Installation
-
 
 Add this to your application's `shard.yml`:
 
@@ -16,25 +15,53 @@ dependencies:
 
 ## Usage
 
-
 ```crystal
 require "google_translate"
 ```
 
+### Example
+The following code translates german word `tanzen` with a typo(double n) and prints the result:
 
-TODO: Write usage instructions here
+
+```crystal
+client = GoogleTranslate::Client.new
+tr = client.translate("de", "en", "tanzenn")
+
+puts "#{tr.source_lang} -> #{tr.target_lang}"
+puts "Query: #{tr.query}"
+puts "Corrected query: #{tr.corrected_query}"
+puts "Text: #{tr.text}"
+tr.variants.each do |word_class, words|
+  puts word_class
+  words.each do |word|
+    puts "  #{word}"
+  end
+end
+```
+
+Output:
+
+```
+de -> en
+Query: tanzenn
+Corrected query: tanzen
+Text: dance
+verb
+  dance
+  hop
+  spin
+  bob
+  foot
+```
+
 
 ## Development
 
-TODO: Write development instructions here
+To run specs:
 
-## Contributing
-
-1. Fork it ( https://github.com/greyblake/google_translate/fork )
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Add some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create a new Pull Request
+```
+crystal spec
+```
 
 ## Contributors
 

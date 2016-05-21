@@ -1,11 +1,15 @@
 require "../src/google_translate"
 
 client = GoogleTranslate::Client.new
-http_response = client.translate("ru", "en", "отличный")
-pp http_response.status_code
-pp http_response.body[0..100]
+tr = client.translate("de", "en", "tanzenn")
 
-puts
-http_response = client.translate("eo", "ru", "bonega")
-pp http_response.status_code
-pp http_response.body[0..100]
+puts "#{tr.source_lang} -> #{tr.target_lang}"
+puts "Query: #{tr.query}"
+puts "Corrected query: #{tr.corrected_query}"
+puts "Text: #{tr.text}"
+tr.variants.each do |word_class, words|
+  puts word_class
+  words.each do |word|
+    puts "  #{word}"
+  end
+end
