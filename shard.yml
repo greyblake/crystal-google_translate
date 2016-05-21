@@ -5,3 +5,9 @@ authors:
   - Sergey Potapov <blake131313@gmail.com>
 
 license: MIT
+
+
+development_dependencies:
+  webmock:
+    github: manastech/webmock.cr
+    version: ~> 0.7.0

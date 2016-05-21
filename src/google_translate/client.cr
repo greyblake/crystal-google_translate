@@ -1,23 +1,52 @@
 module GoogleTranslate
   class Client
     # Pretend being Firefox :)
-    USER_AGENT = "Mozilla/5.0 (X11; U; Linux x86_64; ru; rv:1.9.1.16) Gecko/20110429 Iceweasel/3.5.16 (like Firefox/3.5.1623123)"
+    USER_AGENT = "Mozilla/5.0 (X11; U; Linux x86_64; en; rv:1.9.1.16) Gecko/20110429 Iceweasel/3.5.16 (like Firefox/3.5.1623123)"
 
     def initialize
       @token_builder = TokenBuilder.new
     end
 
-    def translate(from_lang, to_lang, text)
-      sanitized_text = text.gsub(" ", "+")
+    def translate(source_lang : String, target_lang : String, query : String) : Translation
+      http_response = raw_translate(source_lang, target_lang, query)
+      normalized_data = http_response.body.gsub(/,+/, ",").gsub("[,", "[")
+      parsed_data = JSON.parse(normalized_data)
+
+      main_info = parsed_data[0][0]
+      translated_text = main_info[0].as_s
+      corrected_source_text = main_info[1].as_s
+
+      translation = Translation.new(http_response, source_lang, target_lang, query, corrected_source_text, translated_text)
+
+      # If variants of translation are present, parse them
+      if parsed_data[1]? && parsed_data[1].as_a?
+        parsed_data[1].each do |tr|
+          word_class = tr[0].as_s
+          words = tr[1].as_a.map(&.to_s)
+          translation.variants[word_class] = words
+        end
+      end
+
+      translation
+    end
+
+    private def raw_translate(source_lang : String, target_lang : String, query : String)
+      sanitized_query = query.gsub(" ", "+")
+      token = @token_builder.build(query)
+      url = "https://translate.google.com/translate_a/single?client=t&sl=#{source_lang}&tl=#{target_lang}&hl=en&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&ie=UTF-8&oe=UTF-8&otf=1&rom=0&ssel=0&tsel=0&kc=7&tk=#{token}&q=#{sanitized_query}"
 
       headers = HTTP::Headers.new
       headers["User-Agent"] = USER_AGENT
+      http_response = HTTP::Client.get(url, headers)
 
-      token = @token_builder.build(text)
-      pp token
-
-      url = "https://translate.google.ru/translate_a/single?client=t&sl=#{from_lang}&tl=#{to_lang}&hl=en&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&ie=UTF-8&oe=UTF-8&otf=1&rom=0&ssel=0&tsel=0&kc=7&tk=#{token}&q=#{sanitized_text}"
-      HTTP::Client.get(url, headers)
+      case http_response.status_code
+      when 200
+        http_response
+      when 403
+        raise ForbiddenResponseError.new("Looks like GoogleTranslate has changed its algorithm to calculate tk parameter")
+      else
+        raise ResponseError.new("Response HTTP status: #{http_response.status_code} (expected 200)")
+      end
     end
   end
 end

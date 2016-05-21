@@ -1,7 +1,12 @@
 require "http"
+require "json"
 
 require "./google_translate/*"
 
 module GoogleTranslate
-  # TODO Put your code here
+  class Error < ::Exception; end
+
+  class ResponseError < Error; end
+
+  class ForbiddenResponseError < ResponseError; end
 end
