@@ -3,8 +3,19 @@ module GoogleTranslate
     # Pretend being Firefox :)
     USER_AGENT = "Mozilla/5.0 (X11; U; Linux x86_64; en; rv:1.9.1.16) Gecko/20110429 Iceweasel/3.5.16 (like Firefox/3.5.1623123)"
 
+    BASE_URL = "https://translate.google.com"
+
     def initialize
       @token_builder = TokenBuilder.new
+      @cossack = Cossack::Client.new(BASE_URL)
+      @cossack.headers["User-Agent"] = USER_AGENT
+      yield @cossack
+    end
+
+    def initialize
+      @token_builder = TokenBuilder.new
+      @cossack = Cossack::Client.new(BASE_URL)
+      @cossack.headers["User-Agent"] = USER_AGENT
     end
 
     def translate(source_lang : String, target_lang : String, query : String) : Translation
@@ -33,19 +44,17 @@ module GoogleTranslate
     private def raw_translate(source_lang : String, target_lang : String, query : String)
       sanitized_query = query.gsub(" ", "+")
       token = @token_builder.build(query)
-      url = "https://translate.google.com/translate_a/single?client=t&sl=#{source_lang}&tl=#{target_lang}&hl=en&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&ie=UTF-8&oe=UTF-8&otf=1&rom=0&ssel=0&tsel=0&kc=7&tk=#{token}&q=#{sanitized_query}"
+      path = "/translate_a/single?client=t&sl=#{source_lang}&tl=#{target_lang}&hl=en&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&ie=UTF-8&oe=UTF-8&otf=1&rom=0&ssel=0&tsel=0&kc=7&tk=#{token}&q=#{sanitized_query}"
 
-      headers = HTTP::Headers.new
-      headers["User-Agent"] = USER_AGENT
-      http_response = HTTP::Client.get(url, headers)
+      http_response = @cossack.get(path)
 
-      case http_response.status_code
+      case http_response.status
       when 200
         http_response
       when 403
         raise ForbiddenResponseError.new("Looks like GoogleTranslate has changed its algorithm to calculate tk parameter")
       else
-        raise ResponseError.new("Response HTTP status: #{http_response.status_code} (expected 200)")
+        raise ResponseError.new("Response HTTP status: #{http_response.status} (expected 200)")
       end
     end
   end

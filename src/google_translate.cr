@@ -1,6 +1,6 @@
-require "http"
 require "json"
 
+require "../../cossack/src/cossack"
 require "./google_translate/*"
 
 module GoogleTranslate

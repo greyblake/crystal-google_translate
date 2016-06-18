@@ -1,12 +1,12 @@
 require "../spec_helper"
 
-describe GoogleTranslate::TokenBuilder do
+Spec2.describe GoogleTranslate::TokenBuilder do
   describe "#build" do
     it "builds valid token" do
       builder = GoogleTranslate::TokenBuilder.new
 
-      builder.build("bonega").should eq "198529.341247"
-      builder.build("отличный").should eq "249368.392550"
+      expect(builder.build("bonega")).to eq "198529.341247"
+      expect(builder.build("отличный")).to eq "249368.392550"
     end
   end
 end
