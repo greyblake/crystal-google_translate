@@ -6,6 +6,11 @@ authors:
 
 license: MIT
 
+dependencies:
+  cossack:
+    github: greyblake/crystal-cossack
+    version: ~> 0.1.0
+
 development_dependencies:
   spec2:
     github: greyblake/spec2.cr
