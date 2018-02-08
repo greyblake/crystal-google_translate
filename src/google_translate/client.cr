@@ -3,7 +3,7 @@ module GoogleTranslate
     # Pretend being Firefox :)
     USER_AGENT = "Mozilla/5.0 (X11; U; Linux x86_64; en; rv:1.9.1.16) Gecko/20110429 Iceweasel/3.5.16 (like Firefox/3.5.1623123)"
 
-    BASE_URL = "https://translate.google.com"
+    BASE_URL = "http://translate.google.com"
 
     def initialize
       @token_builder = TokenBuilder.new

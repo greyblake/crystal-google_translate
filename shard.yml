@@ -8,7 +8,7 @@ license: MIT
 
 dependencies:
   cossack:
-    github: greyblake/crystal-cossack
+    github: crystal-community/cossack
     version: ~> 0.1.0
 
 development_dependencies:
